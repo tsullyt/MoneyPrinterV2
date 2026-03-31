@@ -6,6 +6,7 @@ from status import *
 from config import *
 from constants import *
 from llm_provider import generate_text
+from price_client import extract_asin, fetch_price_data, format_price_context
 from .Twitter import Twitter
 from selenium_firefox import *
 from selenium import webdriver
@@ -88,6 +89,11 @@ class AffiliateMarketing:
         # Scrape the product information
         self.scrape_product_information()
 
+        # Enrich with Keepa price history (uses resolved URL after page load)
+        asin = extract_asin(self.browser.current_url)
+        price_data = fetch_price_data(asin) if asin else None
+        self.price_context: str = format_price_context(price_data)
+
     def scrape_product_information(self) -> None:
         """
         This method will be used to scrape the product
@@ -135,11 +141,19 @@ class AffiliateMarketing:
         Returns:
             pitch (str): The pitch for the product.
         """
+        # Build prompt, optionally enriched with Keepa price context
+        price_section = f'\nPrice History: "{self.price_context}"' if self.price_context else ""
+        prompt = (
+            f'I want to promote this product on my website. Generate a brief pitch about this product, '
+            f'return nothing else except the pitch. Information:\n'
+            f'Title: "{self.product_title}"\n'
+            f'Features: "{str(self.features)}"{price_section}\n'
+            f'{"If price history is provided, mention whether it is a good time to buy." if self.price_context else ""}'
+        )
+
         # Generate the response
         pitch: str = (
-            self.generate_response(
-                f'I want to promote this product on my website. Generate a brief pitch about this product, return nothing else except the pitch. Information:\nTitle: "{self.product_title}"\nFeatures: "{str(self.features)}"'
-            )
+            self.generate_response(prompt)
             + "\nYou can buy the product here: "
             + self.affiliate_link
         )

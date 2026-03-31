@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find d:MPrintMoneyPrinterV2 -type f -name *.py)"
+    ]
+  }
+}

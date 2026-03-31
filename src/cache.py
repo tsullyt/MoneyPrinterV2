@@ -183,6 +183,15 @@ def add_product(product: dict) -> None:
             "products": products
         }, file, indent=4)
     
+def get_price_cache_path() -> str:
+    """
+    Gets the path to the price tracker cache file.
+
+    Returns:
+        path (str): The path to the price cache file
+    """
+    return os.path.join(get_cache_path(), 'price_cache.json')
+
 def get_results_cache_path() -> str:
     """
     Gets the path to the results cache file.

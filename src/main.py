@@ -15,6 +15,7 @@ from classes.YouTube import YouTube
 from prettytable import PrettyTable
 from classes.Outreach import Outreach
 from classes.AFM import AffiliateMarketing
+from price_client import get_price_status
 from llm_provider import list_models, select_model, get_active_model
 
 def main():
@@ -352,6 +353,8 @@ def main():
                         break
     elif user_input == 3:
         info("Starting Affiliate Marketing...")
+        if get_price_tracker_enabled():
+            info(get_price_status())
 
         cached_products = get_products()
 

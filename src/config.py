@@ -325,6 +325,23 @@ def get_imagemagick_path() -> str:
     with open(os.path.join(ROOT_DIR, "config.json"), "r") as file:
         return json.load(file)["imagemagick_path"]
 
+def get_price_tracker_enabled() -> bool:
+    with open(os.path.join(ROOT_DIR, "config.json"), "r") as file:
+        return json.load(file).get("price_tracker_enabled", False)
+
+def get_price_provider() -> str:
+    with open(os.path.join(ROOT_DIR, "config.json"), "r") as file:
+        return json.load(file).get("price_provider", "camelcamelcamel")
+
+def get_price_tracker_amazon_pa_creds() -> dict:
+    with open(os.path.join(ROOT_DIR, "config.json"), "r") as file:
+        config = json.load(file)
+        return {
+            "api_key": config.get("amazon_pa_api_key", ""),
+            "secret_key": config.get("amazon_pa_secret_key", ""),
+            "associate_tag": config.get("amazon_pa_associate_tag", ""),
+        }
+
 def get_script_sentence_length() -> int:
     """
     Gets the forced script's sentence length.
