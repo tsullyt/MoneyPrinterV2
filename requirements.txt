@@ -3,18 +3,18 @@ requests
 beautifulsoup4
 termcolor
 schedule
-kittentts @ https://github.com/KittenML/KittenTTS/releases/download/0.8.1/kittentts-0.8.1-py3-none-any.whl
+# kittentts @ https://github.com/KittenML/KittenTTS/releases/download/0.8.1/kittentts-0.8.1-py3-none-any.whl  # requires Python <3.13 and misaki>=0.9.4 (not yet on PyPI)
 soundfile
 prettytable
 webdriver_manager
 selenium_firefox
-selenium
+selenium==3.141.0
 ollama
-moviepy
+moviepy==1.0.3
 Pillow>=10.0.0
 yagmail
 assemblyai
 faster-whisper
 srt_equalizer
-undetected_chromedriver
+# undetected_chromedriver  # unused, incompatible with Python 3.14
 platformdirs
