@@ -10,7 +10,7 @@ soundfile
 prettytable
 webdriver_manager
 selenium_firefox
-selenium==3.141.0
+selenium>=4.0.0
 ollama
 moviepy==1.0.3
 Pillow>=10.0.0
