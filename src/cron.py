@@ -1,5 +1,6 @@
 # RUN THIS N AMOUNT OF TIMES
 import sys
+import random
 
 from status import *
 from cache import get_accounts
@@ -83,6 +84,58 @@ def main():
                 if verbose:
                     success("Uploaded Short.")
                 break
+    elif purpose == "afm_twitter":
+        from scrapers.amazon_deals import scrape_top_deals
+        from classes.AFM import generate_deal_tweet
+
+        accounts = get_accounts("twitter")
+
+        if not account_id:
+            error("Account UUID cannot be empty.")
+            sys.exit(1)
+
+        for acc in accounts:
+            if acc["id"] == account_id:
+                if verbose:
+                    info("Scraping Amazon deals...")
+                deals = scrape_top_deals(acc["firefox_profile"])
+                if not deals:
+                    error("No deals found on Amazon. Exiting.")
+                    sys.exit(1)
+                product = random.choice(deals[:3])
+                tweet_text = generate_deal_tweet(product)
+                twitter = Twitter(acc["id"], acc["nickname"], acc["firefox_profile"], acc["topic"])
+                twitter.post(tweet_text)
+                if verbose:
+                    success("Posted deal tweet.")
+                break
+
+    elif purpose == "youtube_news":
+        tts = TTS()
+
+        accounts = get_accounts("youtube")
+
+        if not account_id:
+            error("Account UUID cannot be empty.")
+            sys.exit(1)
+
+        for acc in accounts:
+            if acc["id"] == account_id:
+                if verbose:
+                    info("Initializing YouTube (news mode)...")
+                youtube = YouTube(
+                    acc["id"],
+                    acc["nickname"],
+                    acc["firefox_profile"],
+                    acc["niche"],
+                    acc["language"]
+                )
+                youtube.generate_news_video(tts)
+                youtube.upload_video()
+                if verbose:
+                    success("Uploaded News Short.")
+                break
+
     else:
         error("Invalid Purpose, exiting...")
         sys.exit(1)
