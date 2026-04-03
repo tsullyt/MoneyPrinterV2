@@ -36,5 +36,13 @@
   "price_provider": "camelcamelcamel",
   "amazon_pa_api_key": "",
   "amazon_pa_secret_key": "",
-  "amazon_pa_associate_tag": ""
+  "amazon_pa_associate_tag": "",
+  "amazon_affiliate_tag": "",
+  "news_rss_sources": [
+    "http://feeds.reuters.com/reuters/businessNews",
+    "https://finance.yahoo.com/news/rssindex",
+    "https://www.cnbc.com/id/100003114/device/rss/rss.html",
+    "https://feeds.marketwatch.com/marketwatch/topstories/",
+    "https://www.investopedia.com/feedbuilder/feed/getfeed?feedName=rss_headline"
+  ]
 }
