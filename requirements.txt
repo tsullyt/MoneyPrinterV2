@@ -4,7 +4,8 @@ feedparser
 beautifulsoup4
 termcolor
 schedule
-# kittentts @ https://github.com/KittenML/KittenTTS/releases/download/0.8.1/kittentts-0.8.1-py3-none-any.whl  # requires Python <3.13 and misaki>=0.9.4 (not yet on PyPI)
+edge-tts
+# kittentts @ https://github.com/KittenML/KittenTTS/releases/download/0.8.1/kittentts-0.8.1-py3-none-any.whl  # incompatible with Python 3.14+ (misaki>=0.9.4 not on PyPI)
 soundfile
 prettytable
 webdriver_manager

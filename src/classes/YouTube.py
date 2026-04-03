@@ -399,7 +399,7 @@ class YouTube:
         Returns:
             path_to_wav (str): Path to generated audio (WAV Format).
         """
-        path = os.path.join(ROOT_DIR, ".mp", str(uuid4()) + ".wav")
+        path = os.path.join(ROOT_DIR, ".mp", str(uuid4()) + ".mp3")
 
         # Clean script, remove every character that is not a word character, a space, a period, a question mark, or an exclamation mark.
         self.script = re.sub(r"[^\w\s.?!]", "", self.script)
