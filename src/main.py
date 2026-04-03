@@ -166,6 +166,11 @@ def main():
                         if upload_to_yt.lower() == "yes":
                             youtube.upload_video()
                     elif user_input == 2:
+                        youtube.generate_news_video(tts)
+                        upload_to_yt = question("Do you want to upload this news video to YouTube? (Yes/No): ")
+                        if upload_to_yt.lower() == "yes":
+                            youtube.upload_video()
+                    elif user_input == 3:
                         videos = youtube.get_videos()
 
                         if len(videos) > 0:
@@ -182,35 +187,50 @@ def main():
                             print(videos_table)
                         else:
                             warning(" No videos found.")
-                    elif user_input == 3:
-                        info("How often do you want to upload?")
+                    elif user_input == 4:
+                        info("What type of content do you want to schedule?")
 
+                        info("\n============ OPTIONS ============", False)
+                        for idx, ct_option in enumerate(YOUTUBE_CONTENT_TYPE_OPTIONS):
+                            print(colored(f" {idx + 1}. {ct_option}", "cyan"))
+                        info("=================================\n", False)
+
+                        content_type_input = int(question("Select a type: "))
+
+                        if content_type_input == 3:
+                            break
+
+                        cron_purpose = "youtube" if content_type_input == 1 else "youtube_news"
+
+                        info("How often do you want to upload?")
                         info("\n============ OPTIONS ============", False)
                         for idx, cron_option in enumerate(YOUTUBE_CRON_OPTIONS):
                             print(colored(f" {idx + 1}. {cron_option}", "cyan"))
-
                         info("=================================\n", False)
 
                         user_input = int(question("Select an Option: "))
 
                         cron_script_path = os.path.join(ROOT_DIR, "src", "cron.py")
-                        command = ["python", cron_script_path, "youtube", selected_account['id'], get_active_model()]
+                        command = ["python", cron_script_path, cron_purpose, selected_account['id'], get_active_model()]
 
                         def job():
                             subprocess.run(command)
 
                         if user_input == 1:
-                            # Upload Once
                             schedule.every(1).day.do(job)
                             success("Set up CRON Job.")
                         elif user_input == 2:
-                            # Upload Twice a day
                             schedule.every().day.at("10:00").do(job)
                             schedule.every().day.at("16:00").do(job)
                             success("Set up CRON Job.")
+                        elif user_input == 3:
+                            schedule.every().day.at("08:00").do(job)
+                            schedule.every().day.at("12:00").do(job)
+                            schedule.every().day.at("18:00").do(job)
+                            success("Set up CRON Job.")
                         else:
                             break
-                    elif user_input == 4:
+                    elif user_input == 5:
                         if get_verbose():
                             info(" => Climbing Options Ladder...", False)
                         break
@@ -415,12 +435,97 @@ def main():
                 afm.share_pitch("twitter")
 
     elif user_input == 4:
+        info("Starting Auto Deal Tweet...")
+
+        cached_accounts = get_accounts("twitter")
+
+        if len(cached_accounts) == 0:
+            warning("No Twitter accounts found. Add one via the Twitter Bot menu first.")
+        else:
+            table = PrettyTable()
+            table.field_names = ["ID", "UUID", "Nickname", "Topic"]
+
+            for account in cached_accounts:
+                table.add_row([
+                    cached_accounts.index(account) + 1,
+                    colored(account["id"], "cyan"),
+                    colored(account["nickname"], "blue"),
+                    colored(account["topic"], "green")
+                ])
+
+            print(table)
+            user_input = question("Select a Twitter account to post from: ").strip()
+
+            selected_account = None
+            for account in cached_accounts:
+                if str(cached_accounts.index(account) + 1) == user_input:
+                    selected_account = account
+
+            if selected_account is None:
+                error("Invalid account selected. Please try again.", "red")
+                main()
+            else:
+                from scrapers.amazon_deals import scrape_top_deals
+                from classes.AFM import generate_deal_tweet
+                import random
+
+                info("Scraping Amazon deals (this may take a moment)...")
+                deals = scrape_top_deals(selected_account["firefox_profile"])
+
+                if not deals:
+                    error("No deals found. Try again later.")
+                else:
+                    product = random.choice(deals[:3])
+                    info(f"Selected deal: {product['title'][:80]}")
+                    tweet_text = generate_deal_tweet(product)
+                    info("Generated tweet:")
+                    print(colored(tweet_text, "cyan"))
+
+                    post_now = question("Post this tweet now? (Yes/No): ")
+                    if post_now.lower() == "yes":
+                        twitter = Twitter(
+                            selected_account["id"],
+                            selected_account["nickname"],
+                            selected_account["firefox_profile"],
+                            selected_account["topic"]
+                        )
+                        twitter.post(tweet_text)
+
+                    setup_cron = question("Set up automated deal tweeting? (Yes/No): ")
+                    if setup_cron.lower() == "yes":
+                        info("How often do you want to post?")
+                        info("\n============ OPTIONS ============", False)
+                        for idx, cron_option in enumerate(TWITTER_CRON_OPTIONS):
+                            print(colored(f" {idx + 1}. {cron_option}", "cyan"))
+                        info("=================================\n", False)
+
+                        cron_choice = int(question("Select an Option: "))
+                        cron_script_path = os.path.join(ROOT_DIR, "src", "cron.py")
+                        command = ["python", cron_script_path, "afm_twitter", selected_account["id"], get_active_model()]
+
+                        def deal_job():
+                            subprocess.run(command)
+
+                        if cron_choice == 1:
+                            schedule.every(1).day.do(deal_job)
+                            success("Set up daily deal tweet CRON Job.")
+                        elif cron_choice == 2:
+                            schedule.every().day.at("10:00").do(deal_job)
+                            schedule.every().day.at("16:00").do(deal_job)
+                            success("Set up twice-daily deal tweet CRON Job.")
+                        elif cron_choice == 3:
+                            schedule.every().day.at("08:00").do(deal_job)
+                            schedule.every().day.at("12:00").do(deal_job)
+                            schedule.every().day.at("18:00").do(deal_job)
+                            success("Set up thrice-daily deal tweet CRON Job.")
+
+    elif user_input == 5:
         info("Starting Outreach...")
 
         outreach = Outreach()
 
         outreach.start()
-    elif user_input == 5:
+    elif user_input == 6:
         if get_verbose():
             print(colored(" => Quitting...", "blue"))
         sys.exit(0)

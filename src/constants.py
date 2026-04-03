@@ -9,6 +9,7 @@ OPTIONS = [
     "YouTube Shorts Automation",
     "Twitter Bot",
     "Affiliate Marketing",
+    "Auto Deal Tweet",
     "Outreach",
     "Quit"
 ]
@@ -29,8 +30,15 @@ TWITTER_CRON_OPTIONS = [
 
 YOUTUBE_OPTIONS = [
     "Upload Short",
+    "Upload News Short",
     "Show all Shorts",
     "Setup CRON Job",
+    "Quit"
+]
+
+YOUTUBE_CONTENT_TYPE_OPTIONS = [
+    "Niche Short (AI-generated topic)",
+    "Financial News Short",
     "Quit"
 ]
 
