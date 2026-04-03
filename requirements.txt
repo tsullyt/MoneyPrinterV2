@@ -9,7 +9,6 @@ edge-tts
 soundfile
 prettytable
 webdriver_manager
-selenium_firefox
 selenium>=4.0.0
 ollama
 moviepy==1.0.3
