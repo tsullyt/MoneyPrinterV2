@@ -1,4 +1,5 @@
 import os
+import random
 from urllib.parse import urlparse
 from typing import Any
 
@@ -14,6 +15,47 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 from webdriver_manager.firefox import GeckoDriverManager
+
+
+def generate_deal_tweet(product: dict) -> str:
+    """
+    Generates a story-style tweet for an Amazon deal product.
+    Randomly alternates between first-person anecdote and casual recommendation
+    to keep the account's post history varied.
+
+    Args:
+        product (dict): Deal with keys: title, url (and optional price).
+
+    Returns:
+        str: Tweet text including the product URL, under 280 chars total.
+    """
+    title = product["title"]
+    url = product["url"]
+    tone = random.choice(["anecdote", "casual"])
+
+    if tone == "anecdote":
+        prompt = (
+            f"Write a short, realistic first-person tweet (under 220 characters, NOT counting the URL) "
+            f"about personally needing or wanting a product like this: \"{title}\". "
+            f"Sound like a real person, not a marketer. No hashtags. No asterisks. "
+            f"Do not wrap the tweet in quotes. Return only the tweet text."
+        )
+    else:
+        prompt = (
+            f"Write a short, casual tweet (under 220 characters, NOT counting the URL) "
+            f"casually mentioning this product deal to someone who might be shopping for it: \"{title}\". "
+            f"Sound like a real person, not an ad. No hashtags. No asterisks. "
+            f"Do not wrap the tweet in quotes. Return only the tweet text."
+        )
+
+    tweet_body = generate_text(prompt).strip().strip('"').strip("'").strip()
+
+    # Enforce length so URL fits within 280 chars
+    max_body = 257 - len(url)  # 280 - 1 newline - 2 buffer
+    if len(tweet_body) > max_body:
+        tweet_body = tweet_body[:max_body - 3] + "..."
+
+    return f"{tweet_body}\n{url}"
 
 
 class AffiliateMarketing:
