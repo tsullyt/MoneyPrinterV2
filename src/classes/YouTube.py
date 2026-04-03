@@ -685,6 +685,88 @@ class YouTube:
 
         return path
 
+    def fetch_news_article(self) -> dict:
+        """
+        Fetches the top financial news article via RSS feeds and stores it
+        in self.article for use by generate_news_script().
+
+        Returns:
+            dict: Article with keys title, summary, url, source_name, published.
+        """
+        from scrapers.news_scraper import fetch_top_article
+        article = fetch_top_article()
+        self.article = article
+        if get_verbose():
+            safe_title = article['title'].encode('ascii', 'replace').decode()
+            info(f" => Fetched article: {safe_title} ({article['source_name']})")
+        return article
+
+    def generate_news_script(self) -> str:
+        """
+        Uses Ollama to summarize self.article into a short spoken script.
+        Does not embellish — cites the source at the end.
+
+        Returns:
+            str: The generated script stored in self.script.
+        """
+        article = self.article
+        content = article["summary"] if article.get("summary") else article["title"]
+        prompt = (
+            f"Summarize the following financial news in 5 to 8 concise sentences "
+            f"suitable for a short spoken video. Do not add opinions, speculation, "
+            f"or information not present in the source. Write in plain spoken English. "
+            f"Do not include any preamble, intro phrase, or meta-commentary — start "
+            f"directly with the news content. "
+            f"End with exactly this sentence: 'Source: {article['source_name']}.'\n\n"
+            f"Article title: {article['title']}\n"
+            f"Article content: {content}"
+        )
+        script = self.generate_response(prompt).replace("*", "").strip()
+        if len(script) > 5000:
+            script = script[:5000]
+        self.script = script
+        self.subject = article["title"]
+        if get_verbose():
+            info(f" => Generated news script ({len(script)} chars)")
+        return script
+
+    def generate_news_video(self, tts_instance: TTS) -> str:
+        """
+        Generates a YouTube Short from a live financial news article.
+        Replaces the LLM topic+script steps with RSS fetch + summarization;
+        all downstream steps (images, TTS, combine) are unchanged.
+
+        Args:
+            tts_instance (TTS): Instance of TTS Class.
+
+        Returns:
+            path (str): The path to the generated MP4 file.
+        """
+        # Fetch article and generate script from it
+        self.fetch_news_article()
+        self.generate_news_script()
+
+        # Shared downstream pipeline
+        self.generate_metadata()
+        # Append the original article URL to the description so viewers can read the full story
+        self.metadata["description"] += f"\n\nFull story: {self.article['url']}"
+
+        self.generate_prompts()
+
+        for prompt in self.image_prompts:
+            self.generate_image(prompt)
+
+        self.generate_script_to_speech(tts_instance)
+
+        path = self.combine()
+
+        if get_verbose():
+            info(f" => Generated News Video: {path}")
+
+        self.video_path = os.path.abspath(path)
+
+        return path
+
     def get_channel_id(self) -> str:
         """
         Gets the Channel ID of the YouTube Account.

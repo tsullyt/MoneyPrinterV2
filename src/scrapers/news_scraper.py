@@ -90,8 +90,12 @@ def fetch_top_article() -> dict:
                 continue
         raise RuntimeError("Could not fetch any news articles from any RSS feed.")
 
-    # Score each entry by Jaccard overlap with every other entry's title
-    word_sets = [(_normalize(e["title"]), e) for e in all_entries]
+    # Prefer entries that have actual summary content — gives Ollama something to work with
+    entries_with_summary = [e for e in all_entries if len(e["summary"]) > 50]
+    candidates = entries_with_summary if entries_with_summary else all_entries
+
+    # Score each candidate by Jaccard overlap with every other candidate's title
+    word_sets = [(_normalize(e["title"]), e) for e in candidates]
     scored = []
     for i, (ws_i, entry_i) in enumerate(word_sets):
         cross_score = sum(
@@ -104,11 +108,11 @@ def fetch_top_article() -> dict:
     scored.sort(key=lambda x: x[0], reverse=True)
     best_score, best_entry = scored[0]
 
-    # If no meaningful cross-source signal, return the most recent entry
+    # If no meaningful cross-source signal, return the most recent entry with a summary
     if best_score < 0.1:
-        entries_with_date = [e for e in all_entries if e["published"]]
+        entries_with_date = [e for e in candidates if e["published"]]
         if entries_with_date:
             return max(entries_with_date, key=lambda e: e["published"])
-        return all_entries[0]
+        return candidates[0]
 
     return best_entry
