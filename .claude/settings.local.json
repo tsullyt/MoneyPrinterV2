@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find d:MPrintMoneyPrinterV2 -type f -name *.py)"
+      "Bash(find d:MPrintMoneyPrinterV2 -type f -name *.py)",
+      "Bash(python -c \"import json; json.load\\(open\\('config.example.json'\\)\\); print\\('config.example.json valid JSON'\\)\")",
+      "Bash(python -c ':*)"
     ]
   }
 }
