@@ -1,5 +1,6 @@
 import os
 import asyncio
+import random
 
 from config import ROOT_DIR, get_tts_voice
 
@@ -22,6 +23,8 @@ DEFAULT_VOICE = "en-US-ChristopherNeural"
 class TTS:
     def __init__(self) -> None:
         configured = get_tts_voice()
+        if configured.lower() == "random":
+            configured = random.choice(list(VOICE_MAP.keys()))
         self._voice = VOICE_MAP.get(configured, configured) or DEFAULT_VOICE
 
     def synthesize(self, text: str, output_file: str = os.path.join(ROOT_DIR, ".mp", "audio.mp3")) -> str:
