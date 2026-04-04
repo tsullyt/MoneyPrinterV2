@@ -378,9 +378,44 @@ class YouTube:
         warning("Failed to generate image after 3 attempts (rate limit).")
         return None
 
+    def generate_image_pollinations(self, prompt: str) -> str:
+        """
+        Generates an image using Pollinations.ai (free, no API key required).
+        """
+        from urllib.parse import quote
+
+        aspect = get_nanobanana2_aspect_ratio()
+        try:
+            w_ratio, h_ratio = [int(x) for x in aspect.split(":")]
+        except Exception:
+            w_ratio, h_ratio = 9, 16
+
+        base_unit = 64
+        width = w_ratio * base_unit   # 576 for 9:16
+        height = h_ratio * base_unit  # 1024 for 9:16
+
+        url = (
+            f"https://image.pollinations.ai/prompt/{quote(prompt)}"
+            f"?width={width}&height={height}&nologo=true"
+        )
+
+        try:
+            response = requests.get(url, timeout=120)
+            response.raise_for_status()
+            content_type = response.headers.get("content-type", "")
+            if content_type.startswith("image/"):
+                return self._persist_image(response.content, "Pollinations.ai")
+            if get_verbose():
+                warning(f"Pollinations did not return an image. Content-Type: {content_type}")
+            return None
+        except Exception as e:
+            if get_verbose():
+                warning(f"Failed to generate image with Pollinations.ai: {str(e)}")
+            return None
+
     def generate_image(self, prompt: str) -> str:
         """
-        Generates an AI Image based on the given prompt using Nano Banana 2.
+        Generates an AI Image based on the given prompt.
 
         Args:
             prompt (str): Reference for image generation
@@ -388,7 +423,7 @@ class YouTube:
         Returns:
             path (str): The path to the generated image.
         """
-        return self.generate_image_nanobanana2(prompt)
+        return self.generate_image_pollinations(prompt)
 
     def generate_script_to_speech(self, tts_instance: TTS) -> str:
         """
@@ -671,10 +706,10 @@ class YouTube:
         # Generate the Image Prompts
         self.generate_prompts()
 
-        # Generate the Images — space requests 20s apart to avoid Gemini free-tier rate limits
+        # Generate the Images
         for i, prompt in enumerate(self.image_prompts):
             if i > 0:
-                time.sleep(20)
+                time.sleep(3)
             self.generate_image(prompt)
 
         if not self.images:
