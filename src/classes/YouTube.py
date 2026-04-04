@@ -421,6 +421,50 @@ class YouTube:
                 time.sleep(15)
         return None
 
+    def generate_image_pexels(self, prompt: str) -> str:
+        """
+        Fetches a relevant stock photo from Pexels (free, requires API key).
+        Searches using the prompt text and downloads the best portrait-orientation result.
+        """
+        api_key = get_pexels_api_key()
+        if not api_key:
+            if get_verbose():
+                warning("pexels_api_key not set in config. Falling back to Pollinations.")
+            return self.generate_image_pollinations(prompt)
+
+        # Trim prompt to a short search query (Pexels works best with 3-6 words)
+        words = prompt.split()
+        query = " ".join(words[:6])
+
+        headers = {"Authorization": api_key}
+        params = {"query": query, "orientation": "portrait", "per_page": 5}
+
+        try:
+            r = requests.get(
+                "https://api.pexels.com/v1/search",
+                headers=headers,
+                params=params,
+                timeout=15,
+            )
+            r.raise_for_status()
+            photos = r.json().get("photos", [])
+
+            if not photos:
+                if get_verbose():
+                    warning(f"Pexels returned no results for '{query}'. Falling back to Pollinations.")
+                return self.generate_image_pollinations(prompt)
+
+            # Pick the first result and download its large2x (portrait) version
+            photo_url = photos[0]["src"]["large2x"]
+            img_response = requests.get(photo_url, timeout=30)
+            img_response.raise_for_status()
+            return self._persist_image(img_response.content, "Pexels")
+
+        except Exception as e:
+            if get_verbose():
+                warning(f"Pexels image fetch failed: {str(e)}. Falling back to Pollinations.")
+            return self.generate_image_pollinations(prompt)
+
     def generate_image(self, prompt: str) -> str:
         """
         Generates an AI Image based on the given prompt.
@@ -431,7 +475,7 @@ class YouTube:
         Returns:
             path (str): The path to the generated image.
         """
-        return self.generate_image_pollinations(prompt)
+        return self.generate_image_pexels(prompt)
 
     def generate_script_to_speech(self, tts_instance: TTS) -> str:
         """

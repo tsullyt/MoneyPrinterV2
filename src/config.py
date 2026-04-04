@@ -342,6 +342,16 @@ def get_price_tracker_amazon_pa_creds() -> dict:
             "associate_tag": config.get("amazon_pa_associate_tag", ""),
         }
 
+def get_pexels_api_key() -> str:
+    """
+    Gets the Pexels API key from config.
+
+    Returns:
+        key (str): The Pexels API key, or empty string if not set.
+    """
+    with open(os.path.join(ROOT_DIR, "config.json"), "r") as file:
+        return json.load(file).get("pexels_api_key", "")
+
 def get_script_sentence_length() -> int:
     """
     Gets the forced script's sentence length.
