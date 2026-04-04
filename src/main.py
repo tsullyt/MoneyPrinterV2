@@ -1,5 +1,7 @@
 import schedule
 import subprocess
+import threading
+import time
 
 from art import *
 from cache import *
@@ -381,6 +383,14 @@ if __name__ == "__main__":
 
         select_model(model_choice)
         success(f"Using model: {model_choice}")
+
+    def _run_scheduler():
+        while True:
+            schedule.run_pending()
+            time.sleep(30)
+
+    scheduler_thread = threading.Thread(target=_run_scheduler, daemon=True)
+    scheduler_thread.start()
 
     while True:
         main()
