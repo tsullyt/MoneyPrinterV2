@@ -693,7 +693,12 @@ class YouTube:
             dict: Article with keys title, summary, url, source_name, published.
         """
         from scrapers.news_scraper import fetch_top_article
-        article = fetch_top_article()
+        seen_urls = set()
+        for video in self.get_videos():
+            desc = video.get("description", "")
+            if "Full story: " in desc:
+                seen_urls.add(desc.split("Full story: ")[-1].strip())
+        article = fetch_top_article(seen_urls=seen_urls)
         self.article = article
         if get_verbose():
             safe_title = article['title'].encode('ascii', 'replace').decode()

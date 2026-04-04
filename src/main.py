@@ -277,7 +277,12 @@ def main():
                 if not deals:
                     error("No deals found. Try again later.")
                 else:
-                    product = random.choice(deals[:3])
+                    posted_content = " ".join(p["content"] for p in selected_account.get("posts", []))
+                    fresh_deals = [d for d in deals if d["url"] not in posted_content]
+                    if not fresh_deals:
+                        warning("All scraped deals have already been posted. Try again later for new deals.")
+                        return
+                    product = random.choice(fresh_deals[:3])
                     info(f"Selected deal: {product['title'][:80]}")
                     tweet_text = generate_deal_tweet(product)
                     info("Generated tweet:")

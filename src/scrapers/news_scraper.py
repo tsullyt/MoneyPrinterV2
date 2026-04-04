@@ -34,9 +34,12 @@ def _overlap_score(a: set, b: set) -> float:
     return len(a & b) / len(a | b)
 
 
-def fetch_top_article() -> dict:
+def fetch_top_article(seen_urls: set = None) -> dict:
     """
     Fetches the most prominent financial news article across RSS feeds.
+
+    Args:
+        seen_urls: Optional set of article URLs already used — these will be skipped.
 
     Returns:
         dict with keys: title, summary, url, source_name, published
@@ -89,6 +92,10 @@ def fetch_top_article() -> dict:
             except Exception:
                 continue
         raise RuntimeError("Could not fetch any news articles from any RSS feed.")
+
+    # Skip already-used articles
+    if seen_urls:
+        all_entries = [e for e in all_entries if e["url"] not in seen_urls]
 
     # Prefer entries that have actual summary content — gives Ollama something to work with
     entries_with_summary = [e for e in all_entries if len(e["summary"]) > 50]

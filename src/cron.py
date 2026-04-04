@@ -102,7 +102,12 @@ def main():
                 if not deals:
                     error("No deals found on Amazon. Exiting.")
                     sys.exit(1)
-                product = random.choice(deals[:3])
+                posted_content = " ".join(p["content"] for p in acc.get("posts", []))
+                fresh_deals = [d for d in deals if d["url"] not in posted_content]
+                if not fresh_deals:
+                    error("All scraped deals have already been posted. Exiting.")
+                    sys.exit(1)
+                product = random.choice(fresh_deals[:3])
                 tweet_text = generate_deal_tweet(product)
                 twitter = Twitter(acc["id"], acc["nickname"], acc["firefox_profile"], acc["topic"])
                 twitter.post(tweet_text)
