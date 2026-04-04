@@ -671,8 +671,10 @@ class YouTube:
         # Generate the Image Prompts
         self.generate_prompts()
 
-        # Generate the Images
-        for prompt in self.image_prompts:
+        # Generate the Images — space requests 20s apart to avoid Gemini free-tier rate limits
+        for i, prompt in enumerate(self.image_prompts):
+            if i > 0:
+                time.sleep(20)
             self.generate_image(prompt)
 
         if not self.images:
@@ -764,7 +766,9 @@ class YouTube:
 
         self.generate_prompts()
 
-        for prompt in self.image_prompts:
+        for i, prompt in enumerate(self.image_prompts):
+            if i > 0:
+                time.sleep(20)
             self.generate_image(prompt)
 
         if not self.images:
