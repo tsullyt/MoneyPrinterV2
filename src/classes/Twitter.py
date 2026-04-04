@@ -7,6 +7,7 @@ import json
 from cache import *
 from config import *
 from status import *
+from utils import clear_firefox_profile_lock
 from llm_provider import generate_text
 from typing import List, Optional
 from datetime import datetime
@@ -60,12 +61,11 @@ class Twitter:
         self.options.add_argument("-profile")
         self.options.add_argument(fp_profile_path)
 
-        # Set the service
-        self.service: Service = Service(GeckoDriverManager().install())
-
-        # Initialize the browser
+        # Clear stale profile locks and open browser
+        clear_firefox_profile_lock(fp_profile_path)
+        service = Service(GeckoDriverManager().install())
         self.browser: webdriver.Firefox = webdriver.Firefox(
-            service=self.service, options=self.options
+            service=service, options=self.options
         )
         self.wait: WebDriverWait = WebDriverWait(self.browser, 30)
 

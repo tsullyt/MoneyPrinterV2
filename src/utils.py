@@ -32,6 +32,22 @@ def close_running_selenium_instances() -> None:
         error(f"Error occurred while closing running Selenium instances: {str(e)}")
 
 
+def clear_firefox_profile_lock(profile_path: str) -> None:
+    """
+    Removes stale Firefox profile lock files so a new instance can open.
+    Safe to call even if the files don't exist.
+    """
+    for lock_file in ("parent.lock", ".parentlock", "lock"):
+        lock_path = os.path.join(profile_path, lock_file)
+        try:
+            if os.path.exists(lock_path):
+                os.remove(lock_path)
+                if get_verbose():
+                    info(f" => Removed stale Firefox lock: {lock_path}")
+        except OSError:
+            pass
+
+
 def build_url(youtube_video_id: str) -> str:
     """
     Builds the URL to the YouTube video.

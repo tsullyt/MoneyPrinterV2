@@ -90,13 +90,7 @@ class YouTube:
         self.options.add_argument("-profile")
         self.options.add_argument(self._fp_profile_path)
 
-        # Set the service
-        self.service: Service = Service(GeckoDriverManager().install())
-
-        # Initialize the browser
-        self.browser: webdriver.Firefox = webdriver.Firefox(
-            service=self.service, options=self.options
-        )
+        self.browser: webdriver.Firefox = None
 
     @property
     def niche(self) -> str:
@@ -787,6 +781,12 @@ class YouTube:
 
         return path
 
+    def _init_browser(self) -> None:
+        """Opens Firefox with the account profile, clearing any stale lock files first."""
+        clear_firefox_profile_lock(self._fp_profile_path)
+        service = Service(GeckoDriverManager().install())
+        self.browser = webdriver.Firefox(service=service, options=self.options)
+
     def get_channel_id(self) -> str:
         """
         Gets the Channel ID of the YouTube Account.
@@ -794,6 +794,7 @@ class YouTube:
         Returns:
             channel_id (str): The Channel ID.
         """
+        self._init_browser()
         driver = self.browser
         driver.get("https://studio.youtube.com")
         time.sleep(2)

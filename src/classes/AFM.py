@@ -6,6 +6,7 @@ from typing import Any
 from status import *
 from config import *
 from constants import *
+from utils import clear_firefox_profile_lock
 from llm_provider import generate_text
 from price_client import extract_asin, fetch_price_data, format_price_context
 from .Twitter import Twitter
@@ -101,12 +102,11 @@ class AffiliateMarketing:
         self.options.add_argument("-profile")
         self.options.add_argument(fp_profile_path)
 
-        # Set the service
-        self.service: Service = Service(GeckoDriverManager().install())
-
-        # Initialize the browser
+        # Clear stale profile locks and open browser
+        clear_firefox_profile_lock(fp_profile_path)
+        service = Service(GeckoDriverManager().install())
         self.browser: webdriver.Firefox = webdriver.Firefox(
-            service=self.service, options=self.options
+            service=service, options=self.options
         )
 
         # Set the affiliate link
