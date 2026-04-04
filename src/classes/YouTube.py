@@ -30,6 +30,11 @@ from datetime import datetime
 # Set ImageMagick Path
 change_settings({"IMAGEMAGICK_BINARY": get_imagemagick_path()})
 
+# Pillow 10+ removed ANTIALIAS — patch it back so MoviePy 1.x doesn't crash
+import PIL.Image
+if not hasattr(PIL.Image, "ANTIALIAS"):
+    PIL.Image.ANTIALIAS = PIL.Image.LANCZOS
+
 
 class YouTube:
     """
@@ -395,7 +400,7 @@ class YouTube:
         height = h_ratio * base_unit  # 1024 for 9:16
 
         url = (
-            f"https://image.pollinations.ai/prompt/{quote(prompt)}"
+            f"https://image.pollinations.ai/prompt/{quote(prompt, safe='')}"
             f"?width={width}&height={height}&nologo=true"
         )
 
