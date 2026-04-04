@@ -157,27 +157,26 @@ class YouTube:
         """
         sentence_length = get_script_sentence_length()
         prompt = f"""
-        Generate a script for a video in {sentence_length} sentences, depending on the subject of the video.
+Role: You are a YouTube Shorts scriptwriter specializing in short, punchy narration.
 
-        The script is to be returned as a string with the specified number of paragraphs.
+Instructions: Write a voiceover script for a YouTube Short about the subject below.
 
-        Here is an example of a string:
-        "This is an example string."
+Steps:
+1. Write exactly {sentence_length} sentences — no more, no fewer.
+2. Each sentence must be 10 words or fewer.
+3. Every sentence must end with a period, exclamation mark, or question mark.
+4. Do not join clauses with "and", "but", "so", or "because".
+5. Get straight to the point — do not open with "welcome" or any introduction.
+6. Do not use markdown, bullet points, titles, or any formatting.
+7. Do not label lines with "Narrator:", "Voiceover:", or anything similar.
+8. Do not reference this prompt or mention the script itself.
 
-        Do not under any circumstance reference this prompt in your response.
+End goal: A script that sounds natural when read aloud — punchy, with clear pauses between ideas and no run-on sentences.
 
-        Get straight to the point, don't start with unnecessary things like, "welcome to this video".
-
-        Obviously, the script should be related to the subject of the video.
-        
-        YOU MUST NOT EXCEED THE {sentence_length} SENTENCES LIMIT. MAKE SURE THE {sentence_length} SENTENCES ARE SHORT.
-        YOU MUST NOT INCLUDE ANY TYPE OF MARKDOWN OR FORMATTING IN THE SCRIPT, NEVER USE A TITLE.
-        YOU MUST WRITE THE SCRIPT IN THE LANGUAGE SPECIFIED IN [LANGUAGE].
-        EVERY SENTENCE MUST END WITH PROPER PUNCTUATION (period, exclamation mark, or question mark). DO NOT OMIT PUNCTUATION.
-        ONLY RETURN THE RAW CONTENT OF THE SCRIPT. DO NOT INCLUDE "VOICEOVER", "NARRATOR" OR SIMILAR INDICATORS OF WHAT SHOULD BE SPOKEN AT THE BEGINNING OF EACH PARAGRAPH OR LINE. YOU MUST NOT MENTION THE PROMPT, OR ANYTHING ABOUT THE SCRIPT ITSELF. ALSO, NEVER TALK ABOUT THE AMOUNT OF PARAGRAPHS OR LINES. JUST WRITE THE SCRIPT
-        
-        Subject: {self.subject}
-        Language: {self.language}
+Narrowing:
+- Subject: {self.subject}
+- Language: {self.language}
+- Return only the raw script. Absolutely nothing else.
         """
         completion = self.generate_response(prompt)
 

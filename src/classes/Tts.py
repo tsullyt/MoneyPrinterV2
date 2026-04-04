@@ -41,7 +41,7 @@ class TTS:
         import edge_tts
 
         async def _run():
-            communicate = edge_tts.Communicate(text, self._voice)
+            communicate = edge_tts.Communicate(text, self._voice, rate="-10%")
             await communicate.save(output_file)
 
         asyncio.run(_run())
