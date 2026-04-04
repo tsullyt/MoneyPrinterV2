@@ -6,6 +6,7 @@ Falls back to the Electronics Best Sellers page if the deals page yields nothing
 
 import re
 import time
+import subprocess
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -14,6 +15,7 @@ from selenium.webdriver.firefox.options import Options
 from webdriver_manager.firefox import GeckoDriverManager
 
 from config import get_headless
+from utils import clear_firefox_profile_lock
 
 AMAZON_DEALS_URL = (
     "https://www.amazon.com/deals"
@@ -35,6 +37,13 @@ def scrape_top_deals(firefox_profile: str, limit: int = 5) -> list:
     Returns:
         list of dicts with keys: title, price, url
     """
+    subprocess.call(["taskkill", "/f", "/im", "geckodriver.exe"],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.call(["taskkill", "/f", "/im", "firefox.exe"],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(1)
+    clear_firefox_profile_lock(firefox_profile)
+
     options = Options()
     if get_headless():
         options.add_argument("--headless")
