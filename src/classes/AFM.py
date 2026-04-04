@@ -212,6 +212,9 @@ class AffiliateMarketing:
             where (str): The platform where the pitch will be shared.
         """
         if where == "twitter":
+            # Quit the AFM scraping browser before opening Twitter's
+            self.browser.quit()
+
             # Initialize the Twitter class
             twitter: Twitter = Twitter(
                 self.account_uuid,

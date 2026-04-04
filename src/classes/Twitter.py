@@ -61,7 +61,13 @@ class Twitter:
         self.options.add_argument("-profile")
         self.options.add_argument(fp_profile_path)
 
-        # Clear stale profile locks and open browser
+        # Kill orphaned processes, clear stale locks, then open browser
+        import subprocess
+        subprocess.call(["taskkill", "/f", "/im", "geckodriver.exe"],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.call(["taskkill", "/f", "/im", "firefox.exe"],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(1)
         clear_firefox_profile_lock(fp_profile_path)
         service = Service(GeckoDriverManager().install())
         self.browser: webdriver.Firefox = webdriver.Firefox(
@@ -82,62 +88,64 @@ class Twitter:
         bot: webdriver.Firefox = self.browser
         verbose: bool = get_verbose()
 
-        bot.get("https://x.com/compose/post")
+        try:
+            bot.get("https://x.com/compose/post")
 
-        post_content: str = text if text is not None else self.generate_post()
-        now: datetime = datetime.now()
+            post_content: str = text if text is not None else self.generate_post()
+            now: datetime = datetime.now()
 
-        print(colored(" => Posting to Twitter:", "blue"), post_content[:30] + "...")
-        body = post_content
+            print(colored(" => Posting to Twitter:", "blue"), post_content[:30] + "...")
+            body = post_content
 
-        text_box = None
-        text_box_selectors = [
-            (By.CSS_SELECTOR, "div[data-testid='tweetTextarea_0'][role='textbox']"),
-            (By.XPATH, "//div[@data-testid='tweetTextarea_0']//div[@role='textbox']"),
-            (By.XPATH, "//div[@role='textbox']"),
-        ]
+            text_box = None
+            text_box_selectors = [
+                (By.CSS_SELECTOR, "div[data-testid='tweetTextarea_0'][role='textbox']"),
+                (By.XPATH, "//div[@data-testid='tweetTextarea_0']//div[@role='textbox']"),
+                (By.XPATH, "//div[@role='textbox']"),
+            ]
 
-        for selector in text_box_selectors:
-            try:
-                text_box = self.wait.until(EC.element_to_be_clickable(selector))
-                text_box.click()
-                text_box.send_keys(body)
-                break
-            except Exception:
-                continue
+            for selector in text_box_selectors:
+                try:
+                    text_box = self.wait.until(EC.element_to_be_clickable(selector))
+                    text_box.click()
+                    text_box.send_keys(body)
+                    break
+                except Exception:
+                    continue
 
-        if text_box is None:
-            raise RuntimeError(
-                "Could not find tweet text box. Ensure you are logged into X in this Firefox profile."
-            )
+            if text_box is None:
+                raise RuntimeError(
+                    "Could not find tweet text box. Ensure you are logged into X in this Firefox profile."
+                )
 
+            post_button = None
+            post_button_selectors = [
+                (By.XPATH, "//button[@data-testid='tweetButtonInline']"),
+                (By.XPATH, "//button[@data-testid='tweetButton']"),
+                (By.XPATH, "//span[text()='Post']/ancestor::button"),
+            ]
 
-        post_button = None
-        post_button_selectors = [
-            (By.XPATH, "//button[@data-testid='tweetButtonInline']"),
-            (By.XPATH, "//button[@data-testid='tweetButton']"),
-            (By.XPATH, "//span[text()='Post']/ancestor::button"),
-        ]
+            for selector in post_button_selectors:
+                try:
+                    post_button = self.wait.until(EC.element_to_be_clickable(selector))
+                    post_button.click()
+                    break
+                except Exception:
+                    continue
 
-        for selector in post_button_selectors:
-            try:
-                post_button = self.wait.until(EC.element_to_be_clickable(selector))
-                post_button.click()
-                break
-            except Exception:
-                continue
+            if post_button is None:
+                raise RuntimeError("Could not find the Post button on X compose screen.")
 
-        if post_button is None:
-            raise RuntimeError("Could not find the Post button on X compose screen.")
+            if verbose:
+                print(colored(" => Pressed [ENTER] Button on Twitter..", "blue"))
+            time.sleep(2)
 
-        if verbose:
-            print(colored(" => Pressed [ENTER] Button on Twitter..", "blue"))
-        time.sleep(2)
+            # Add the post to the cache
+            self.add_post({"content": body, "date": now.strftime("%m/%d/%Y, %H:%M:%S")})
 
-        # Add the post to the cache
-        self.add_post({"content": body, "date": now.strftime("%m/%d/%Y, %H:%M:%S")})
-
-        success("Posted to Twitter successfully!")
+            success("Posted to Twitter successfully!")
+        finally:
+            self.browser.quit()
 
     def get_posts(self) -> List[dict]:
         """
