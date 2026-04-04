@@ -173,6 +173,7 @@ class YouTube:
         YOU MUST NOT EXCEED THE {sentence_length} SENTENCES LIMIT. MAKE SURE THE {sentence_length} SENTENCES ARE SHORT.
         YOU MUST NOT INCLUDE ANY TYPE OF MARKDOWN OR FORMATTING IN THE SCRIPT, NEVER USE A TITLE.
         YOU MUST WRITE THE SCRIPT IN THE LANGUAGE SPECIFIED IN [LANGUAGE].
+        EVERY SENTENCE MUST END WITH PROPER PUNCTUATION (period, exclamation mark, or question mark). DO NOT OMIT PUNCTUATION.
         ONLY RETURN THE RAW CONTENT OF THE SCRIPT. DO NOT INCLUDE "VOICEOVER", "NARRATOR" OR SIMILAR INDICATORS OF WHAT SHOULD BE SPOKEN AT THE BEGINNING OF EACH PARAGRAPH OR LINE. YOU MUST NOT MENTION THE PROMPT, OR ANYTHING ABOUT THE SCRIPT ITSELF. ALSO, NEVER TALK ABOUT THE AMOUNT OF PARAGRAPHS OR LINES. JUST WRITE THE SCRIPT
         
         Subject: {self.subject}
@@ -182,6 +183,17 @@ class YouTube:
 
         # Apply regex to remove *
         completion = re.sub(r"\*", "", completion)
+
+        # Ensure each sentence ends with punctuation so TTS pauses correctly
+        sentences = re.split(r'(?<=[.!?])\s+', completion.strip())
+        fixed = []
+        for s in sentences:
+            s = s.strip()
+            if s and s[-1] not in ".!?":
+                s += "."
+            if s:
+                fixed.append(s)
+        completion = " ".join(fixed)
 
         if not completion:
             error("The generated script is empty.")
