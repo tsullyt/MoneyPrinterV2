@@ -91,6 +91,18 @@ class Twitter:
         try:
             bot.get("https://x.com/compose/post")
 
+            # X sometimes loads an error page — detect and retry up to 3 times
+            for _attempt in range(3):
+                time.sleep(3)
+                page = bot.page_source
+                if "something went wrong" in page.lower() or "don't fret" in page.lower():
+                    if get_verbose():
+                        from status import warning as _warn
+                        _warn("X error page detected, refreshing...")
+                    bot.refresh()
+                else:
+                    break
+
             post_content: str = text if text is not None else self.generate_post()
             now: datetime = datetime.now()
 
