@@ -166,12 +166,14 @@ def main():
                         youtube.generate_video(tts)
                         upload_to_yt = question("Do you want to upload this video to YouTube? (Yes/No): ")
                         if upload_to_yt.lower() == "yes":
-                            youtube.upload_video()
+                            if not youtube.upload_video():
+                                warning("Upload failed — check the error above for details.")
                     elif user_input == 2:
                         youtube.generate_news_video(tts)
                         upload_to_yt = question("Do you want to upload this news video to YouTube? (Yes/No): ")
                         if upload_to_yt.lower() == "yes":
-                            youtube.upload_video()
+                            if not youtube.upload_video():
+                                warning("Upload failed — check the error above for details.")
                     elif user_input == 3:
                         videos = youtube.get_videos()
 

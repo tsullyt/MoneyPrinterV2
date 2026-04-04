@@ -23,6 +23,7 @@ from moviepy.config import change_settings
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.common.keys import Keys
 from moviepy.video.tools.subtitles import SubtitlesClip
 from webdriver_manager.firefox import GeckoDriverManager
 from datetime import datetime
@@ -660,7 +661,7 @@ class YouTube:
             color="#FFFF00",
             stroke_color="black",
             stroke_width=5,
-            size=(1080, 1920),
+            size=(1080, 300),
             method="caption",
         )
 
@@ -712,9 +713,9 @@ class YouTube:
         subtitles = None
         try:
             subtitles_path = self.generate_subtitles(self.tts_path)
-            equalize_subtitles(subtitles_path, 10)
+            equalize_subtitles(subtitles_path, 30)
             subtitles = SubtitlesClip(subtitles_path, generator)
-            subtitles.set_pos(("center", "center"))
+            subtitles.set_pos(("center", 1550))
         except Exception as e:
             warning(f"Failed to generate subtitles, continuing without subtitles: {e}")
 
@@ -938,7 +939,8 @@ class YouTube:
 
             title_el.click()
             time.sleep(1)
-            title_el.clear()
+            title_el.send_keys(Keys.CONTROL + "a")
+            title_el.send_keys(Keys.DELETE)
             title_el.send_keys(self.metadata["title"])
 
             if verbose:
@@ -948,7 +950,8 @@ class YouTube:
             time.sleep(10)
             description_el.click()
             time.sleep(0.5)
-            description_el.clear()
+            description_el.send_keys(Keys.CONTROL + "a")
+            description_el.send_keys(Keys.DELETE)
             description_el.send_keys(self.metadata["description"])
 
             time.sleep(0.5)
@@ -1049,7 +1052,8 @@ class YouTube:
             driver.quit()
 
             return True
-        except:
+        except Exception as e:
+            error(f"upload_video failed: {type(e).__name__}: {e}")
             if self.browser is not None:
                 self.browser.quit()
             return False
