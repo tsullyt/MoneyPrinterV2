@@ -61,13 +61,11 @@ class Twitter:
         self.options.add_argument("-profile")
         self.options.add_argument(fp_profile_path)
 
-        # Kill orphaned processes, clear stale locks, then open browser
+        # Kill orphaned geckodriver processes, clear stale locks, then open browser
+        # (does NOT kill firefox.exe to avoid closing the user's personal browser)
         import subprocess
         subprocess.call(["taskkill", "/f", "/im", "geckodriver.exe"],
                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.call(["taskkill", "/f", "/im", "firefox.exe"],
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        time.sleep(1)
         clear_firefox_profile_lock(fp_profile_path)
         service = Service(GeckoDriverManager().install())
         self.browser: webdriver.Firefox = webdriver.Firefox(

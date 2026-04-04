@@ -886,14 +886,12 @@ class YouTube:
         return path
 
     def _init_browser(self) -> None:
-        """Kills orphaned Firefox/geckodriver processes, clears profile locks, then opens browser."""
+        """Kills orphaned geckodriver processes, clears profile locks, then opens browser."""
         import subprocess
-        # Kill any leftover geckodriver or firefox processes from previous crashed runs
+        # Kill any leftover geckodriver processes from previous crashed runs
+        # (does NOT kill firefox.exe to avoid closing the user's personal browser)
         subprocess.call(["taskkill", "/f", "/im", "geckodriver.exe"],
                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.call(["taskkill", "/f", "/im", "firefox.exe"],
-                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        time.sleep(1)
         clear_firefox_profile_lock(self._fp_profile_path)
         service = Service(GeckoDriverManager().install())
         self.browser = webdriver.Firefox(service=service, options=self.options)
