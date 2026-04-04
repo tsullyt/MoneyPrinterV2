@@ -227,7 +227,7 @@ class YouTube:
         Returns:
             image_prompts (List[str]): Generated List of image prompts.
         """
-        n_prompts = len(self.script) / 3
+        n_prompts = 4
 
         prompt = f"""
         Generate {n_prompts} Image Prompts for AI Image Generation,
@@ -285,7 +285,7 @@ class YouTube:
                     return self.generate_prompts()
 
         if len(image_prompts) > n_prompts:
-            image_prompts = image_prompts[: int(n_prompts)]
+            image_prompts = image_prompts[:n_prompts]
 
         self.image_prompts = image_prompts
 
