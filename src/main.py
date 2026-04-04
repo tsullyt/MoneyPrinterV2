@@ -274,7 +274,7 @@ def main():
                 import random
 
                 info("Scraping Amazon deals (this may take a moment)...")
-                deals = scrape_top_deals(selected_account["firefox_profile"])
+                deals = scrape_top_deals(selected_account["firefox_profile"], limit=20)
 
                 if not deals:
                     error("No deals found. Try again later.")
@@ -284,7 +284,7 @@ def main():
                     if not fresh_deals:
                         warning("All scraped deals have already been posted. Try again later for new deals.")
                         return
-                    product = random.choice(fresh_deals[:3])
+                    product = random.choice(fresh_deals)
                     info(f"Selected deal: {product['title'][:80]}")
                     tweet_text = generate_deal_tweet(product)
                     info("Generated tweet:")

@@ -37,11 +37,9 @@ def scrape_top_deals(firefox_profile: str, limit: int = 5) -> list:
     Returns:
         list of dicts with keys: title, price, url
     """
+    # Kill only stale geckodriver — leave user's Firefox instances untouched
     subprocess.call(["taskkill", "/f", "/im", "geckodriver.exe"],
                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    subprocess.call(["taskkill", "/f", "/im", "firefox.exe"],
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    time.sleep(1)
     clear_firefox_profile_lock(firefox_profile)
 
     options = Options()

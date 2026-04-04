@@ -98,7 +98,7 @@ def main():
             if acc["id"] == account_id:
                 if verbose:
                     info("Scraping Amazon deals...")
-                deals = scrape_top_deals(acc["firefox_profile"])
+                deals = scrape_top_deals(acc["firefox_profile"], limit=20)
                 if not deals:
                     error("No deals found on Amazon. Exiting.")
                     sys.exit(1)
@@ -107,7 +107,7 @@ def main():
                 if not fresh_deals:
                     error("All scraped deals have already been posted. Exiting.")
                     sys.exit(1)
-                product = random.choice(fresh_deals[:3])
+                product = random.choice(fresh_deals)
                 tweet_text = generate_deal_tweet(product)
                 twitter = Twitter(acc["id"], acc["nickname"], acc["firefox_profile"], acc["topic"])
                 twitter.post(tweet_text)
