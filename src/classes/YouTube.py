@@ -345,36 +345,44 @@ class YouTube:
             },
         }
 
-        try:
-            response = requests.post(
-                endpoint,
-                headers={"x-goog-api-key": api_key, "Content-Type": "application/json"},
-                json=payload,
-                timeout=300,
-            )
-            response.raise_for_status()
-            body = response.json()
+        for attempt in range(3):
+            try:
+                response = requests.post(
+                    endpoint,
+                    headers={"x-goog-api-key": api_key, "Content-Type": "application/json"},
+                    json=payload,
+                    timeout=300,
+                )
+                if response.status_code == 429:
+                    wait = 15 * (attempt + 1)
+                    warning(f"Gemini rate limit hit. Waiting {wait}s before retry {attempt + 1}/3...")
+                    time.sleep(wait)
+                    continue
+                response.raise_for_status()
+                body = response.json()
 
-            candidates = body.get("candidates", [])
-            for candidate in candidates:
-                content = candidate.get("content", {})
-                for part in content.get("parts", []):
-                    inline_data = part.get("inlineData") or part.get("inline_data")
-                    if not inline_data:
-                        continue
-                    data = inline_data.get("data")
-                    mime_type = inline_data.get("mimeType") or inline_data.get("mime_type", "")
-                    if data and str(mime_type).startswith("image/"):
-                        image_bytes = base64.b64decode(data)
-                        return self._persist_image(image_bytes, "Nano Banana 2 API")
+                candidates = body.get("candidates", [])
+                for candidate in candidates:
+                    content = candidate.get("content", {})
+                    for part in content.get("parts", []):
+                        inline_data = part.get("inlineData") or part.get("inline_data")
+                        if not inline_data:
+                            continue
+                        data = inline_data.get("data")
+                        mime_type = inline_data.get("mimeType") or inline_data.get("mime_type", "")
+                        if data and str(mime_type).startswith("image/"):
+                            image_bytes = base64.b64decode(data)
+                            return self._persist_image(image_bytes, "Nano Banana 2 API")
 
-            if get_verbose():
-                warning(f"Nano Banana 2 did not return an image payload. Response: {body}")
-            return None
-        except Exception as e:
-            if get_verbose():
-                warning(f"Failed to generate image with Nano Banana 2 API: {str(e)}")
-            return None
+                if get_verbose():
+                    warning(f"Nano Banana 2 did not return an image payload. Response: {body}")
+                return None
+            except Exception as e:
+                if get_verbose():
+                    warning(f"Failed to generate image with Nano Banana 2 API: {str(e)}")
+                return None
+        warning("Failed to generate image after 3 attempts (rate limit).")
+        return None
 
     def generate_image(self, prompt: str) -> str:
         """
@@ -555,6 +563,8 @@ class YouTube:
         Returns:
             path (str): The path to the generated MP4 File.
         """
+        if not self.images:
+            raise RuntimeError("No images were generated — cannot combine video. Check Gemini API key and rate limits.")
         combined_image_path = os.path.join(ROOT_DIR, ".mp", str(uuid4()) + ".mp4")
         threads = get_threads()
         tts_clip = AudioFileClip(self.tts_path)
@@ -671,6 +681,9 @@ class YouTube:
         for prompt in self.image_prompts:
             self.generate_image(prompt)
 
+        if not self.images:
+            raise RuntimeError("Image generation failed for all prompts. Check Gemini API key and rate limits.")
+
         # Generate the TTS
         self.generate_script_to_speech(tts_instance)
 
@@ -759,6 +772,9 @@ class YouTube:
 
         for prompt in self.image_prompts:
             self.generate_image(prompt)
+
+        if not self.images:
+            raise RuntimeError("Image generation failed for all prompts. Check Gemini API key and rate limits.")
 
         self.generate_script_to_speech(tts_instance)
 
