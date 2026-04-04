@@ -399,19 +399,23 @@ class YouTube:
             f"?width={width}&height={height}&nologo=true"
         )
 
-        try:
-            response = requests.get(url, timeout=120)
-            response.raise_for_status()
-            content_type = response.headers.get("content-type", "")
-            if content_type.startswith("image/"):
-                return self._persist_image(response.content, "Pollinations.ai")
-            if get_verbose():
-                warning(f"Pollinations did not return an image. Content-Type: {content_type}")
-            return None
-        except Exception as e:
-            if get_verbose():
-                warning(f"Failed to generate image with Pollinations.ai: {str(e)}")
-            return None
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0"}
+        for attempt in range(3):
+            try:
+                response = requests.get(url, headers=headers, timeout=120)
+                response.raise_for_status()
+                content_type = response.headers.get("content-type", "")
+                if content_type.startswith("image/"):
+                    return self._persist_image(response.content, "Pollinations.ai")
+                if get_verbose():
+                    warning(f"Pollinations did not return an image. Content-Type: {content_type}")
+                return None
+            except Exception as e:
+                if get_verbose():
+                    warning(f"Pollinations attempt {attempt + 1}/3 failed: {str(e)}")
+                if attempt < 2:
+                    time.sleep(5)
+        return None
 
     def generate_image(self, prompt: str) -> str:
         """
