@@ -19,3 +19,4 @@ faster-whisper
 srt_equalizer
 # undetected_chromedriver  # unused, incompatible with Python 3.14
 platformdirs
+pyperclip

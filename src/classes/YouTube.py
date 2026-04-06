@@ -224,8 +224,16 @@ Narrowing:
             return self.generate_metadata()
 
         description = self.generate_response(
-            f"Please generate a YouTube Video Description for the following script: {self.script}. Only return the description, nothing else."
+            f"Please generate a YouTube Video Description for the following script: {self.script}. "
+            f"Do not include any URLs, hyperlinks, or 'Full story' lines — those will be added separately. "
+            f"Only return the description, nothing else."
         )
+        # Strip any URL lines the LLM may have hallucinated (e.g. "Full story: https://...")
+        description_lines = [
+            line for line in description.splitlines()
+            if "http" not in line and "Full story" not in line
+        ]
+        description = "\n".join(description_lines).strip()
 
         self.metadata = {"title": title, "description": description}
 
@@ -829,7 +837,7 @@ Narrowing:
             f"or information not present in the source. Write in plain spoken English. "
             f"Do not include any preamble, intro phrase, or meta-commentary — start "
             f"directly with the news content. "
-            f"End with exactly this sentence: 'Source: {article['source_name']}.'\n\n"
+            f"End with exactly this sentence: 'Source, {article['source_name']}.'\n\n"
             f"Article title: {article['title']}\n"
             f"Article content: {content}"
         )
@@ -955,13 +963,15 @@ Narrowing:
             if verbose:
                 info("\t=> Setting description...")
 
-            # Set description
+            # Set description via clipboard paste — send_keys truncates long text
+            import pyperclip
             time.sleep(10)
             description_el.click()
             time.sleep(0.5)
             description_el.send_keys(Keys.CONTROL + "a")
             description_el.send_keys(Keys.DELETE)
-            description_el.send_keys(self.metadata["description"])
+            pyperclip.copy(self.metadata["description"])
+            description_el.send_keys(Keys.CONTROL + "v")
 
             time.sleep(0.5)
 
