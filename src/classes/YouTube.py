@@ -964,8 +964,10 @@ Narrowing:
                 info("\t=> Setting description...")
 
             # Set description via clipboard paste — send_keys truncates long text
+            # Re-fetch to avoid stale element reference after title interaction
             import pyperclip
             time.sleep(10)
+            description_el = driver.find_elements(By.ID, YOUTUBE_TEXTBOX_ID)[-1]
             description_el.click()
             time.sleep(0.5)
             description_el.send_keys(Keys.CONTROL + "a")
